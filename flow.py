@@ -5,15 +5,19 @@ import argparse
 import os
 import sys
 import datetime
+import thread
 import scapy.all
 import pickle
 import netaddr
+import json
+import flask
 
 args = None
 flow = {}
 
 UPLOAD = 0
 DOWNLOAD = 1
+app = flask.Flask(__name__)
 
 def add_flow(local, remote, direction, now, proto, length):
     global flow
@@ -68,16 +72,15 @@ def main(args):
         dumpfile.close()
     if args['debug']: print flow
 
-    #try:
-    if True:
+    try:
         print "start sniffing"
-        scapy.all.sniff(filter="ip", count=100, iface=args['listen'], prn=handle_packet, store=0)
-    #except Exception, e:
-    #    print e
-    #    exit(1)
-    #except e:
-    #    print "Unknown error"
-    #    exit(1)
+        scapy.all.sniff(filter="ip", iface=args['listen'], prn=handle_packet, store=0)
+    except Exception, e:
+        print e
+        exit(1)
+    except e:
+        print "Unknown error"
+        exit(1)
     print "\rdumping data..."
     if args['debug']: print flow
     dumpfile = open(args['dump'], 'wb')
@@ -89,12 +92,15 @@ if __name__ == "__main__":
     parser.add_argument('listen', help = "Listen interface")
     parser.add_argument('network', help = "Counting Network")
     parser.add_argument('-f', dest = 'dump', help = "Dump File", default='data.dmp')
+    parser.add_argument('-p', dest = 'port', type = int, help = "Server Port", default=3000)
     parser.add_argument('-d', dest = 'debug', action="store_true", help = "Debug mode")
     args = vars(parser.parse_args(sys.argv[1:]))
     if args['debug']: print args
 
     #try:
-    main(args)
+    thread.start_new_thread(main, (args, ))
+    #main(args)
+    app.run(host = '0.0.0.0', port = args['port'])
     #except:
         #print "Unknown error in main"
         #exit(1)
