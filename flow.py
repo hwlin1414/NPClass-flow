@@ -117,12 +117,12 @@ def flow_ip_remote(ip, remote):
     else:
         for t in flow[ip]:
             result[t] = [0, 0]
-            if r in flow[ip][t][DOWNLOAD]:
-                for p in flow[ip][t][DOWNLOAD][r]:
-                    result[t][DOWNLOAD] += flow[ip][t][DOWNLOAD][p]
-            if r in flow[ip][t][UPLOAD]:
-                for p in flow[ip][t][UPLOAD][r]:
-                    result[t][UPLOAD] += flow[ip][t][UPLOAD][p]
+            if remote in flow[ip][t][DOWNLOAD]:
+                for p in flow[ip][t][DOWNLOAD][remote]:
+                    result[t][DOWNLOAD] += flow[ip][t][DOWNLOAD][remote][p]
+            if remote in flow[ip][t][UPLOAD]:
+                for p in flow[ip][t][UPLOAD][remote]:
+                    result[t][UPLOAD] += flow[ip][t][UPLOAD][remote][p]
     return json.dumps(result)
 
 @app.route('/flows/<ip>/time/<time>')
@@ -157,12 +157,14 @@ def flow_ip_time_remote(ip, time, remote):
     elif remote not in flow[ip][time][DOWNLOAD] and remote not in flow[ip][time][UPLOAD]:
         result = None
     else:
-        for p in flow[ip][time][DOWNLOAD][remote]:
-            if p not in result: result[p] = [0, 0]
-            result[p][DOWNLOAD] += flow[ip][time][DOWNLOAD][remote][p]
-        for p in flow[ip][time][UPLOAD][remote]:
-            if p not in result: result[p] = [0, 0]
-            result[p][UPLOAD] += flow[ip][time][UPLOAD][remote][p]
+        if remote in flow[ip][time][DOWNLOAD]:
+            for p in flow[ip][time][DOWNLOAD][remote]:
+                if p not in result: result[p] = [0, 0]
+                result[p][DOWNLOAD] += flow[ip][time][DOWNLOAD][remote][p]
+        if remote in flow[ip][time][UPLOAD]:
+            for p in flow[ip][time][UPLOAD][remote]:
+                if p not in result: result[p] = [0, 0]
+                result[p][UPLOAD] += flow[ip][time][UPLOAD][remote][p]
     return json.dumps(result)
 
 if __name__ == "__main__":
