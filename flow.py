@@ -22,14 +22,14 @@ app = flask.Flask(__name__)
 def add_flow(local, remote, direction, now, proto, length):
     global flow
     if local not in flow:
-        flow[local] = ({}, {})
-    if now not in flow[local][direction]:
-        flow[local][direction][now] = {}
-    if remote not in flow[local][direction][now]:
-        flow[local][direction][now][remote] = {}
-    if proto not in flow[local][direction][now][remote]:
-        flow[local][direction][now][remote][proto] = 0
-    flow[local][direction][now][remote][proto] += length
+        flow[local] = {}
+    if now not in flow[local]:
+        flow[local][now] = ({}, {})
+    if remote not in flow[local][now][direction]:
+        flow[local][now][direction][remote] = {}
+    if proto not in flow[local][now][direction][remote]:
+        flow[local][now][direction][remote][proto] = 0
+    flow[local][now][direction][remote][proto] += length
 
 def handle_packet(packet):
     packet = packet.payload # switch to layer 3
@@ -81,11 +81,89 @@ def main(args):
     except e:
         print "Unknown error"
         exit(1)
-    print "\rdumping data..."
-    if args['debug']: print flow
-    dumpfile = open(args['dump'], 'wb')
-    pickle.dump(flow, dumpfile)
-    dumpfile.close()
+
+@app.route('/flows/')
+def flow_list():
+    result = []
+    for l in flow:
+        result.append(l)
+    return json.dumps(result)
+
+@app.route('/flows/<ip>')
+@app.route('/flows/<ip>/')
+def flow_ip(ip):
+    result = {}
+    #flow[local][now][direction][remote][proto] -> length
+    if ip not in flow:
+        result = None
+    else:
+        for t in flow[ip]:
+            result[t] = [0, 0]
+            for r in flow[ip][t][DOWNLOAD]:
+                for p in flow[ip][t][DOWNLOAD][r]:
+                    result[t][DOWNLOAD] += flow[ip][t][DOWNLOAD][r][p]
+            for r in flow[ip][t][UPLOAD]:
+                for p in flow[ip][t][UPLOAD][r]:
+                    result[t][UPLOAD] += flow[ip][t][UPLOAD][r][p]
+    return json.dumps(result)
+
+@app.route('/flows/<ip>/remote/<remote>')
+@app.route('/flows/<ip>/remote/<remote>/')
+def flow_ip_remote(ip, remote):
+    result = {}
+    #flow[local][now][direction][remote][proto] -> length
+    if ip not in flow:
+        result = None
+    else:
+        for t in flow[ip]:
+            result[t] = [0, 0]
+            if r in flow[ip][t][DOWNLOAD]:
+                for p in flow[ip][t][DOWNLOAD][r]:
+                    result[t][DOWNLOAD] += flow[ip][t][DOWNLOAD][p]
+            if r in flow[ip][t][UPLOAD]:
+                for p in flow[ip][t][UPLOAD][r]:
+                    result[t][UPLOAD] += flow[ip][t][UPLOAD][p]
+    return json.dumps(result)
+
+@app.route('/flows/<ip>/time/<time>')
+@app.route('/flows/<ip>/time/<time>/')
+def flow_ip_time(ip, time):
+    result = {}
+    #flow[local][now][direction][remote][proto] -> length
+    if ip not in flow:
+        result = None
+    elif time not in flow[ip]:
+        result = None
+    else:
+        for r in flow[ip][time][DOWNLOAD]:
+            if r not in result: result[r] = [0, 0]
+            for p in flow[ip][time][DOWNLOAD][r]:
+                result[r][DOWNLOAD] += flow[ip][time][DOWNLOAD][r][p]
+        for r in flow[ip][time][UPLOAD]:
+            if r not in result: result[r] = [0, 0]
+            for p in flow[ip][time][UPLOAD][r]:
+                result[r][UPLOAD] += flow[ip][time][UPLOAD][r][p]
+    return json.dumps(result)
+
+@app.route('/flows/<ip>/<time>/<remote>')
+@app.route('/flows/<ip>/<time>/<remote>/')
+def flow_ip_time_remote(ip, time, remote):
+    result = {}
+    #flow[local][now][direction][remote][proto] -> length
+    if ip not in flow:
+        result = None
+    elif time not in flow[ip]:
+        result = None
+    elif remote not in flow[ip][time][DOWNLOAD] and remote not in flow[ip][time][UPLOAD]:
+        result = None
+    else:
+        for p in flow[ip][time][DOWNLOAD][remote]:
+            if p not in result: result[p] = [0, 0]
+            result[p][DOWNLOAD] += flow[ip][time][DOWNLOAD][remote][p]
+        for p in flow[ip][time][UPLOAD][remote]:
+            if p not in result: result[p] = [0, 0]
+            result[p][UPLOAD] += flow[ip][time][UPLOAD][remote][p]
+    return json.dumps(result)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Flow Capture", prog = sys.argv[0])
@@ -104,3 +182,9 @@ if __name__ == "__main__":
     #except:
         #print "Unknown error in main"
         #exit(1)
+
+    print "\rdumping data..."
+    if args['debug']: print flow
+    dumpfile = open(args['dump'], 'wb')
+    pickle.dump(flow, dumpfile)
+    dumpfile.close()
