@@ -12,7 +12,7 @@ class Flow extends Model
     public static function HR($bytes){
         $size = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
         $factor = floor((strlen($bytes) - 1) / 3);
-        return sprintf("%.2f", $bytes / pow(1024, $factor)) . $size[$factor];
+        return sprintf("%.2f ", $bytes / pow(1024, $factor)) . $size[$factor];
     }
 
     public function getDay()

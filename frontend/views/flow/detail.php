@@ -68,7 +68,7 @@ $script = <<<EOD
                 },
                 success: function (data) {
                     $.each(data, function(key, value) {
-                        str = str + '<span style="color: ' + e.entries[0].dataSeries.color + ';">'+key+':</span>';
+                        str = str + '<span style="color: ' + e.entries[0].dataSeries.color + ';">'+key+': </span>';
                         str = str + value[1] + '<br>';
                     }); 
                 }
@@ -104,7 +104,7 @@ $script = <<<EOD
                 },
                 success: function (data) {
                     $.each(data, function(key, value) {
-                        str = str + '<span style="color: ' + e.entries[0].dataSeries.color + ';">'+key+':</span>';
+                        str = str + '<span style="color: ' + e.entries[0].dataSeries.color + ';">'+key+': </span>';
                         str = str + value[0] + '<br>';
                     }); 
                 }

@@ -87,6 +87,11 @@ class FlowController extends Controller
         if($hour == null) $hour = date("H");
         if($min == null) $hour = date("H");
         $model = new Flow(['ip' => $ip, 'date' => $date]);
-        return $model->getRemote($hour, $min, $remote);
+        $a = (array)$model->getRemote($hour, $min, $remote);
+        foreach($a as $key => $val){
+            $a[$key][] = Flow::HR($val[0]);
+            $a[$key][] = Flow::HR($val[1]);
+        }
+        return $a;
     }
 }
