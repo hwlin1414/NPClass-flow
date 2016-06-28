@@ -38,6 +38,7 @@ $this->registerJs($script, yii\web\View::POS_READY);
     'columns' => [
         [
             'attribute' => 'ip',
+            'label' => 'IP',
             'format' => 'raw',
             'value' => function($model, $tmp, $tmp2, $tmp3){
                 return Html::a(Html::encode($model->ip), ['/flow/view', 'ip' => $model->ip, 'date' => $model->date]);
@@ -45,6 +46,7 @@ $this->registerJs($script, yii\web\View::POS_READY);
         ],
         [
             'attribute' => 'day',
+            'label' => '每日流量',
             'value' => function($model, $tmp1, $tmp2, $tmp3){
                 return Flow::HR($model->day);
             }

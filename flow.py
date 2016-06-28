@@ -74,7 +74,7 @@ def main(args):
 
     try:
         print "start sniffing"
-        scapy.all.sniff(filter="ip", iface=args['listen'], prn=handle_packet, store=0)
+        scapy.all.sniff(filter="ip", iface=args['listen'], prn=handle_packet, store=10)
     except Exception, e:
         print e
         exit(1)

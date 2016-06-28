@@ -33,11 +33,15 @@ class Flow extends Model
         }
         return $flow;
     }
-    public function getHour($time)
+    public function getHour($time, $remote=null)
     {
         $time = str_pad($time, 2, "0", STR_PAD_LEFT);
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, Yii::$app->params['flow'].$this->ip.'/');
+        $url = Yii::$app->params['flow'].$this->ip.'/';
+        if($remote != null){
+            $url = Yii::$app->params['flow'].$this->ip.'/remote/'.$remote.'/';
+        }
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
         $temp=json_decode(curl_exec($ch));
@@ -55,19 +59,24 @@ class Flow extends Model
         return [$dflow, $uflow];
     }
 
-    public function getMin($hour, $min)
+    public function getMin($hour, $min, $remote = null)
     {
         $hour = str_pad($hour, 2, "0", STR_PAD_LEFT);
         $min = str_pad($min, 2, "0", STR_PAD_LEFT);
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, Yii::$app->params['flow'].$this->ip.'/');
+        $url = Yii::$app->params['flow'].$this->ip.'/';
+        if($remote != null){
+            $url = Yii::$app->params['flow'].$this->ip.'/remote/'.$remote.'/';
+        }
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-        $temp=json_decode(curl_exec($ch));
+        $temp=(array)json_decode(curl_exec($ch));
         curl_close($ch);
         if($temp == null) return [0, 0];
         $uflow = 0;
         $dflow = 0;
+
 
         foreach($temp as $d => $val){
             if($d == str_replace('-', '', $this->date).$hour.$min){
@@ -103,6 +112,14 @@ class Flow extends Model
         $temp=json_decode(curl_exec($ch));
         curl_close($ch);
         return $temp;
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'ip' => 'IP',
+            'day' => '每日流量',
+        ];
     }
 }
 ?>

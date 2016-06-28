@@ -80,7 +80,7 @@ class FlowController extends Controller
         ]);
     }
 
-    public function actionRemote($ip, $remote, $date = null, $hour = null, $min = null){
+    public function actionAjax($ip, $remote, $date = null, $hour = null, $min = null){
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         if($date == null) $date = date("Y-m-d");
@@ -93,5 +93,26 @@ class FlowController extends Controller
             $a[$key][] = Flow::HR($val[1]);
         }
         return $a;
+    }
+
+    public function actionRemoteView($ip, $remote, $date = null){
+        if($date == null) $date = date("Y-m-d");
+        $model = new Flow(['ip' => $ip, 'date' => $date]);
+        return $this->render('remoteview', [
+            'model' => $model,
+            'date' => $date,
+            'remote' => $remote,
+        ]);
+    }
+    public function actionRemoteDetail($ip, $remote, $date = null, $hour = null){
+        if($date == null) $date = date("Y-m-d");
+        if($hour == null) $hour = date("H");
+        $model = new Flow(['ip' => $ip, 'date' => $date]);
+        return $this->render('remotedetail', [
+            'model' => $model,
+            'date' => $date,
+            'hour' => $hour,
+            'remote' => $remote,
+        ]);
     }
 }

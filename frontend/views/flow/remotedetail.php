@@ -10,6 +10,10 @@ $this->params['breadcrumbs'][] = [
     'label' => $model->ip,
     'url' => ['/flow/view', 'ip' => $model->ip, 'date' => $date]
 ];
+$this->params['breadcrumbs'][] = [
+    'label' => $remote,
+    'url' => ['/flow/remote-view', 'ip' => $model->ip, 'date' => $date, 'remote' => $remote]
+];
 $this->params['breadcrumbs'][] = $hour . " 時";
 
 $df = "";
@@ -17,7 +21,7 @@ $uf = "";
 $Udata = "";
 $Ddata = "";
 for($i = 0; $i < 60; $i++){
-    $f = $model->getMin($hour, $i);
+    $f = $model->getMin($hour, $i, $remote);
     $f[0] = $f[0] / 1000000;
     $f[1] = $f[1] / 1000000;
     $df = $df . "{y: ${f[0]}, label: '${i}'},\n";
@@ -26,18 +30,18 @@ for($i = 0; $i < 60; $i++){
     $f = (array)$model->getMinRemote($hour, $i);
     $Udata = $Udata . "\t[";
     $Ddata = $Ddata . "\t[";
-    foreach($f as $key => $remote){
-        $Udata = $Udata . "{label: '${key}', y: ${remote[0]}, m: ${i}},";
-        $Ddata = $Ddata . "{label: '${key}', y: ${remote[1]}, m: ${i}},";
+    foreach($f as $key => $remotef){
+        $color = 'grey';
+        if($key == $remote) $color = 'red';
+        $Udata = $Udata . "{label: '${key}', y: ${remotef[0]}, m: ${i}, color: '{$color}'},";
+        $Ddata = $Ddata . "{label: '${key}', y: ${remotef[1]}, m: ${i}, color: '{$color}'},";
     }
     $Udata = $Udata . "],\n";
     $Ddata = $Ddata . "],\n";
 }
 
-$url = Url::toRoute(['/flow/view', 'ip' => $model->ip, 'date' => '']);
-$url2 = Url::toRoute(['/flow/detail', 'ip' => $model->ip, 'date' => $date, 'time' => '']);
+$url = Url::toRoute(['/flow/remote-view', 'ip' => $model->ip, 'remote' => $remote, 'date' => '']);
 $url3 = Url::toRoute(['/flow/ajax', 'ip' => $model->ip, 'date' => $date, 'hour' => $hour]);
-$url4 = Url::toRoute(['/flow/remote-view', 'ip' => $model->ip, 'date' => $date, 'remote' => '']);
 $script = <<<EOD
     detail = [
         [${Udata}],
@@ -85,9 +89,6 @@ $script = <<<EOD
 		data: [              
 		{
 			type: "doughnut",
-            click: function(e){
-                window.location.href = "${url4}"+e.dataPoint.label;
-            },
 			dataPoints: [
 			]
 		}
@@ -124,9 +125,6 @@ $script = <<<EOD
 		data: [              
 		{
 			type: "doughnut",
-            click: function(e){
-                window.location.href = "${url4}"+e.dataPoint.label;
-            },
 			dataPoints: [
 			]
 		}
@@ -198,7 +196,7 @@ $this->registerJs($script, yii\web\View::POS_READY);
 <div class="site-index">
 
     <div>
-        <h2><?= Html::encode($model->ip) ?></h2>
+        <h2><?= Html::encode($model->ip) ?> - <?=Html::encode($remote)?></h2>
     </div>
 
     <div class="body-content">

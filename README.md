@@ -1,12 +1,21 @@
 # NPClass-flow
 
-features:
+environment
+
+learned:
     threads
-    saving data on exit
     flask api
+    scapy
+    pickle
+    json
+
+features:
+    saving data on exit
+    flow api
 
     pretty url
     server close protect
+    sortable list
     permissions
     canvas
     date
